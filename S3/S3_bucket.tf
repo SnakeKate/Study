@@ -1,23 +1,28 @@
 resource "aws_s3_bucket" "bucket" {
+  count = var.enabled ? 1 : 0
+
   bucket = var.s3_bucket_name
-}
+  }
 
 resource "aws_s3_bucket_ownership_controls" "bucket" {
-  bucket = aws_s3_bucket.bucket.id
+  count = var.enabled ? 1 : 0
+  bucket = aws_s3_bucket.bucket[count.index].id
   rule {
     object_ownership = "BucketOwnerPreferred"
   }
 }
 
 resource "aws_s3_bucket_acl" "bucket" {
+  count = var.enabled ? 1 : 0
   depends_on = [aws_s3_bucket_ownership_controls.bucket]
 
-  bucket = aws_s3_bucket.bucket.id
+  bucket = aws_s3_bucket.bucket[count.index].id
   acl    = "private"
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "bucket-config" {
-  bucket = aws_s3_bucket.bucket.id
+  count = var.enabled ? 1 : 0
+  bucket = aws_s3_bucket.bucket[count.index].id
 
   rule {
     id = "log"

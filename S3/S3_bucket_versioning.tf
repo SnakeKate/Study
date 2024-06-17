@@ -1,22 +1,29 @@
 resource "aws_s3_bucket" "versioning_bucket" {
+  count = var.enabled ? 0 : 1
+
   bucket = var.my-versioning-bucket
 }
 
 resource "aws_s3_bucket_acl" "versioning_bucket_acl" {
-  bucket = aws_s3_bucket.versioning_bucket.id
+  count = var.enabled ? 0 : 1
+
+  bucket = aws_s3_bucket.versioning_bucket[count.index].id
   acl    = "private"
   depends_on = [aws_s3_bucket_ownership_controls.versioning_bucket]
 }
 
 resource "aws_s3_bucket_ownership_controls" "versioning_bucket" {
-  bucket = aws_s3_bucket.versioning_bucket.id
+  count = var.enabled ? 0 : 1 
+  bucket = aws_s3_bucket.versioning_bucket[count.index].id
   rule {
     object_ownership = "BucketOwnerPreferred"
   }
 }
 
 resource "aws_s3_bucket_versioning" "versioning" {
-  bucket = aws_s3_bucket.versioning_bucket.id
+  count = var.enabled ? 0 : 1
+
+  bucket = aws_s3_bucket.versioning_bucket[count.index].id
   versioning_configuration {
     status = "Enabled"
   }
@@ -24,9 +31,10 @@ resource "aws_s3_bucket_versioning" "versioning" {
 
 resource "aws_s3_bucket_lifecycle_configuration" "versioning-bucket-config" {
   # Must have bucket versioning enabled first
+  count = var.enabled ? 0 : 1
   depends_on = [aws_s3_bucket_versioning.versioning]
 
-  bucket = aws_s3_bucket.versioning_bucket.id
+  bucket = aws_s3_bucket.versioning_bucket[count.index].id
 
   rule {
     id = "all_documents"
